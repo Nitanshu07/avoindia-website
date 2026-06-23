@@ -720,4 +720,149 @@
     });
     const prodBanner = document.getElementById('prodGateBanner');
     if (prodBanner) prodBanner.style.display = loggedIn ? 'none' : 'flex';
-    // Blog posts — handled duri
+    // Blog posts
+    document.querySelectorAll('.blog-post').forEach((post, i) => {
+      if (i >= 2 && !loggedIn) {
+        post.classList.add('locked');
+        if (!post.querySelector('.post-lock-overlay')) {
+          const ov = document.createElement('div');
+          ov.className = 'post-lock-overlay';
+          ov.onclick = openLoginModal;
+          ov.innerHTML = '<div class="lock-icon">🔒</div><div class="lock-text">Sign in to read</div><div class="lock-sub">Free registration required</div>';
+          post.appendChild(ov);
+        }
+      } else {
+        post.classList.remove('locked');
+        const ov = post.querySelector('.post-lock-overlay');
+        if (ov) ov.remove();
+      }
+    });
+  }
+
+  // ── PRICES ──
+  function renderPriceCard(p) {
+    const isUp = (p.change || 0) >= 0;
+    const pct = Math.abs(p.changePct || 0).toFixed(1);
+    const bar = Math.min(100, Math.max(20, ((p.price - 50) / 200) * 100));
+    return `<div class="price-card">
+      <div class="price-card-top">
+        <div><div class="price-variety">${p.variety}</div><div style="font-size:0.75rem;color:var(--muted)">${p.origin || ''}</div></div>
+        <span class="price-badge ${isUp ? 'badge-up' : 'badge-down'}">${isUp ? '▲' : '▼'} ${pct}%</span>
+      </div>
+      <div class="price-value">₹${p.price}</div>
+      <div class="price-unit">per ${p.unit || 'kg'} · ${p.grade || 'A Grade'}</div>
+      <div class="price-change">${isUp ? '▲' : '▼'} ₹${Math.abs(p.change || 0).toFixed(2)} from yesterday</div>
+      <div class="price-bar"><div class="price-bar-fill" style="width:${bar}%"></div></div>
+    </div>`;
+  }
+
+  async function loadPrices() {
+    try {
+      const res = await fetch(`${API_BASE}/api/prices`);
+      const prices = await res.json();
+      const freeGrid = document.getElementById('priceGridFree');
+      const lockedGrid = document.getElementById('priceGridLocked');
+      freeGrid.innerHTML = prices.slice(0, 3).map(renderPriceCard).join('');
+      lockedGrid.innerHTML = prices.slice(3).map(renderPriceCard).join('');
+      // Sidebar quick prices
+      const sidebar = document.getElementById('sidebarPrices');
+      if (sidebar) sidebar.innerHTML = prices.slice(0, 4).map(p => {
+        const isUp = (p.change || 0) >= 0;
+        return `<div class="qp-row"><span class="qp-name">${p.variety}</span><span class="qp-val">₹${p.price}</span><span class="qp-chg ${isUp ? 'chg-pos' : 'chg-neg'}">${isUp ? '+' : ''}${(p.changePct || 0).toFixed(1)}%</span></div>`;
+      }).join('');
+      // Ticker
+      const ticker = document.getElementById('tickerContent');
+      if (ticker) ticker.innerHTML = prices.map(p => {
+        const isUp = (p.change || 0) >= 0;
+        return `<span class="${isUp ? 'up' : 'down'}">🥑 ${p.variety}: ₹${p.price}/kg ${isUp ? '▲' : '▼'} ${Math.abs(p.changePct || 0).toFixed(1)}%</span>`;
+      }).join('');
+      // Product price labels
+      const varMap = { 'Hass': 'pp-hass', 'Fuerte': 'pp-fuerte', 'Lula': 'pp-lula', 'Ettinger': 'pp-ettinger' };
+      prices.forEach(p => {
+        const entry = Object.entries(varMap).find(([k]) => p.variety.includes(k));
+        if (entry) { const el = document.getElementById(entry[1]); if (el) el.textContent = `₹${p.price}/kg`; }
+      });
+      const upd = document.getElementById('priceUpdated');
+      if (upd) upd.textContent = `🕐 Last updated: ${new Date(prices[0]?.updatedAt || Date.now()).toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST`;
+    } catch(e) { console.error('Prices failed:', e); }
+  }
+
+  // ── POSTS ──
+  function renderPost(post, idx) {
+    const colors = ['#2d6a4f','#1d4ed8','#b45309','#9d174d','#5b21b6'];
+    const col = colors[idx % colors.length];
+    const initials = (post.author || 'AI').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    const locked = idx >= 2 && !currentUser;
+    return `<div class="blog-post${locked ? ' locked' : ''}">
+      <div class="post-meta">
+        <div class="post-avatar" style="background:${col}">${initials}</div>
+        <div><div class="post-author">${post.author || 'AvoIndia Team'}</div><div class="post-role">${post.role || 'Market Analyst'}</div></div>
+        <span class="post-category cat-${post.category || 'Market'}">${post.category || 'Market'}</span>
+      </div>
+      <div class="post-title">${post.title}</div>
+      <div class="post-excerpt">${post.excerpt || (post.content || '').substring(0,180) + '...'}</div>
+      <div class="post-footer">
+        <span class="post-date">${new Date(post.createdAt || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</span>
+        <div class="post-actions">
+          <button class="post-action">👍 ${post.likes || 0}</button>
+          <button class="post-action">💬 ${post.comments || 0}</button>
+          <button class="post-action">↗ Share</button>
+        </div>
+      </div>
+      ${locked ? '<div class="post-lock-overlay" onclick="openLoginModal()"><div class="lock-icon">🔒</div><div class="lock-text">Sign in to read</div><div class="lock-sub">Free registration required</div></div>' : ''}
+    </div>`;
+  }
+
+  async function loadPosts() {
+    const feed = document.getElementById('blogFeed');
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`);
+      const posts = await res.json();
+      feed.innerHTML = posts.map((p, i) => renderPost(p, i)).join('');
+    } catch(e) {
+      feed.innerHTML = '<div class="price-loading">⚠️ Could not load articles. Please refresh.</div>';
+    }
+  }
+
+  // ── SUBSCRIBE ──
+  function subscribeAlert() {
+    const email = document.getElementById('alertEmail')?.value?.trim();
+    if (!email) { showToast('Please enter your email.', 'error'); return; }
+    fetch(`${API_BASE}/api/visitors`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: email.split('@')[0], email, interest:'Just Price Updates', source:'sidebar_alert' })
+    }).catch(()=>{});
+    showToast('Subscribed! Daily price alerts on their way. 🥑');
+    const el = document.getElementById('alertEmail'); if (el) el.value = '';
+  }
+
+  // ── CONTACT ──
+  async function submitContact() {
+    const fname = document.getElementById('cf-fname')?.value?.trim();
+    const email = document.getElementById('cf-email')?.value?.trim();
+    if (!fname || !email) { showToast('Please fill name and email.', 'error'); return; }
+    const lname = document.getElementById('cf-lname')?.value?.trim() || '';
+    const biz   = document.getElementById('cf-biz')?.value?.trim() || '';
+    const phone = document.getElementById('cf-phone')?.value?.trim() || '';
+    const interest = document.getElementById('cf-interest')?.value || '';
+    const msg   = document.getElementById('cf-msg')?.value?.trim() || '';
+    try {
+      await fetch(`${API_BASE}/api/visitors`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ name:`${fname} ${lname}`.trim(), email, phone, city:biz, interest, message:msg, source:'contact_form' })
+      });
+    } catch(_){}
+    showToast('Enquiry sent! Our team will contact you within 24 hours. 🥑');
+    ['cf-fname','cf-lname','cf-email','cf-phone','cf-biz','cf-msg'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+  }
+
+  // ── INIT ──
+  updateNavUser();
+  applyGates();
+  loadPrices();
+  loadPosts();
+</script>
+</body>
+</html>
