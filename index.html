@@ -274,7 +274,7 @@
 <body>
 
 <!-- VISITOR REGISTER MODAL -->
-<div class="modal-overlay" id="visitorModal">
+<div class="modal-overlay hidden" id="visitorModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-icon">🥑</div>
@@ -618,8 +618,21 @@
 
   // ── VISITOR MODAL ──
   function closeModal() {
-    document.getElementById('visitorModal').classList.add('hidden');
+    const m = document.getElementById('visitorModal');
+    m.classList.add('hidden');
+    m.style.display = 'none';
+    localStorage.setItem('avo_registered', '1');
   }
+
+  // Show modal after 4s if not already registered/logged in
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('avo_registered') && !currentUser) {
+      setTimeout(() => {
+        document.getElementById('visitorModal').classList.remove('hidden');
+        document.getElementById('visitorModal').style.display = '';
+      }, 4000);
+    }
+  });
 
   async function registerVisitor() {
     const name = document.getElementById('v-name').value.trim();
