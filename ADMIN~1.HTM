@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AvoIndia Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green:#2d6a4f;--green-mid:#40916c;--green-light:#74c69d;--green-pale:#d8f3dc;
+      --yellow:#e9c46a;--yellow-dark:#f4a261;--text:#1b1b1b;--muted:#6b7280;
+      --border:#e5e7eb;--bg:#f3f4f6;--white:#fff;--red:#ef4444;--blue:#3b82f6;
+      --card-shadow:0 2px 12px rgba(0,0,0,0.07);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+
+    /* ── LOGIN ── */
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1b4332,#2d6a4f);}
+    .login-card{background:var(--white);border-radius:20px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+    .login-logo{font-size:2.5rem;text-align:center;margin-bottom:6px;}
+    .login-title{font-weight:800;font-size:1.4rem;text-align:center;color:var(--green);margin-bottom:4px;}
+    .login-sub{font-size:0.83rem;color:var(--muted);text-align:center;margin-bottom:24px;}
+    .login-group{margin-bottom:14px;}
+    .login-group label{font-size:0.82rem;font-weight:600;display:block;margin-bottom:5px;}
+    .login-group input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:0.9rem;font-family:inherit;outline:none;transition:border-color 0.2s;}
+    .login-group input:focus{border-color:var(--green);}
+    .login-btn{width:100%;background:var(--green);color:var(--white);border:none;padding:12px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit;transition:background 0.2s;margin-top:4px;}
+    .login-btn:hover{background:var(--green-mid);}
+    .login-err{font-size:0.82rem;color:var(--red);text-align:center;margin-top:10px;display:none;}
+
+    /* ── LAYOUT ── */
+    .app{display:none;min-height:100vh;flex-direction:column;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .topbar-logo{font-weight:800;font-size:1.1rem;color:var(--green);}
+    .topbar-logo span{color:var(--yellow-dark);}
+    .topbar-right{display:flex;align-items:center;gap:14px;}
+    .topbar-user{font-size:0.85rem;font-weight:600;color:var(--muted);}
+    .btn-sm{padding:6px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;}
+    .btn-green{background:var(--green);color:var(--white);}
+    .btn-green:hover{background:var(--green-mid);}
+    .btn-red{background:#fee2e2;color:var(--red);}
+    .btn-red:hover{background:#fecaca;}
+    .btn-blue{background:#dbeafe;color:#1d4ed8;}
+    .btn-blue:hover{background:#bfdbfe;}
+    .btn-gray{background:var(--border);color:var(--muted);}
+    .btn-gray:hover{background:#d1d5db;}
+
+    .main-wrap{display:flex;flex:1;}
+
+    /* SIDEBAR */
+    .sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;}
+    .nav-section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:0 20px;margin:14px 0 6px;}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.88rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;text-decoration:none;}
+    .sidebar-item:hover{background:var(--green-pale);color:var(--green);}
+    .sidebar-item.active{background:var(--green-pale);color:var(--green);border-left-color:var(--green);font-weight:600;}
+    .sidebar-item .icon{font-size:1rem;width:20px;text-align:center;}
+
+    /* CONTENT */
+    .content{flex:1;padding:28px;overflow-y:auto;}
+    .page{display:none;}
+    .page.active{display:block;}
+    .page-title{font-weight:800;font-size:1.4rem;margin-bottom:6px;}
+    .page-sub{font-size:0.87rem;color:var(--muted);margin-bottom:24px;}
+
+    /* STAT CARDS */
+    .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+    .stat-card{background:var(--white);border-radius:14px;padding:20px;box-shadow:var(--card-shadow);border:1px solid var(--border);}
+    .stat-card-label{font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+    .stat-card-val{font-size:1.8rem;font-weight:800;color:var(--green);}
+    .stat-card-sub{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+
+    /* TABLE */
+    .card{background:var(--white);border-radius:14px;padding:24px;box-shadow:var(--card-shadow);border:1px solid var(--border);margin-bottom:24px;}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    .card-title{font-weight:700;font-size:1rem;}
+    table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+    th{text-align:left;padding:10px 14px;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border);}
+    td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#fafafa;}
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+    .badge-green{background:#d1fae5;color:#065f46;}
+    .badge-yellow{background:#fef3c7;color:#92400e;}
+    .badge-red{background:#fee2e2;color:#991b1b;}
+    .badge-blue{background:#dbeafe;color:#1d4ed8;}
+    .badge-gray{background:#f3f4f6;color:#6b7280;}
+
+    /* PRICE EDITOR */
+    .price-editor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+    .price-edit-card{background:var(--white);border-radius:14px;padding:20px;border:1px solid var(--border);box-shadow:var(--card-shadow);}
+    .price-edit-card h4{font-weight:700;margin-bottom:14px;color:var(--green);}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .field-group{display:flex;flex-direction:column;gap:4px;}
+    .field-group label{font-size:0.75rem;font-weight:600;color:var(--muted);}
+    .field-group input{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:0.88rem;font-family:inherit;outline:none;width:100%;transition:border-color 0.2s;}
+    .field-group input:focus{border-color:var(--green);}
+    .field-group select{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:0.88rem;font-family:inherit;outline:none;width:100%;}
+
+    /* BLOG EDITOR */
+    .post-editor{background:var(--white);border-radius:14px;padding:24px;border:1px solid var(--border);box-shadow:var(--card-shadow);}
+    .post-editor input,.post-editor textarea,.post-editor select{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;font-size:0.9rem;font-family:inherit;outline:none;margin-bottom:12px;transition:border-color 0.2s;}
+    .post-editor input:focus,.post-editor textarea:focus,.post-editor select:focus{border-color:var(--green);}
+    .post-editor textarea{min-height:140px;resize:vertical;}
+    .post-editor label{font-size:0.8rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text);}
+    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    /* VISITOR FILTERS */
+    .filter-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+    .filter-bar input,.filter-bar select{border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:0.85rem;font-family:inherit;outline:none;}
+    .filter-bar input:focus,.filter-bar select:focus{border-color:var(--green);}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;background:#111827;color:white;padding:12px 20px;border-radius:12px;font-size:0.88rem;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateY(100px);opacity:0;transition:all 0.3s;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.success{border-left:4px solid #10b981;}
+    .toast.error{border-left:4px solid #ef4444;}
+
+    .saving-indicator{font-size:0.8rem;color:var(--muted);display:none;}
+    .saving-indicator.show{display:inline;}
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── LOGIN ── -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🥑</div>
+    <div class="login-title">AvoIndia Admin</div>
+    <div class="login-sub">Sign in to manage prices, posts & leads</div>
+    <div class="login-group">
+      <label>Admin Password</label>
+      <input type="password" id="loginPwd" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="loginErr">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div class="app" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">🥑 Avo<span>India</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted);margin-left:6px;">Admin Panel</span></div>
+    <div class="topbar-right">
+      <span class="topbar-user">👤 Admin</span>
+      <a href="/" target="_blank" class="btn-sm btn-blue">View Site ↗</a>
+      <button class="btn-sm btn-gray" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-section-label">Overview</div>
+      <a class="sidebar-item active" onclick="showPage('dashboard')"><span class="icon">📊</span>Dashboard</a>
+
+      <div class="nav-section-label">Content</div>
+      <a class="sidebar-item" onclick="showPage('prices')"><span class="icon">💰</span>Live Prices</a>
+      <a class="sidebar-item" onclick="showPage('posts')"><span class="icon">📝</span>Blog Posts</a>
+
+      <div class="nav-section-label">Leads & CRM</div>
+      <a class="sidebar-item" onclick="showPage('visitors')"><span class="icon">👥</span>Visitor Leads</a>
+      <a class="sidebar-item" onclick="showPage('reports')"><span class="icon">📈</span>Sales Reports</a>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview of your website activity and leads.</div>
+        <div class="stat-cards">
+          <div class="stat-card"><div class="stat-card-label">Total Visitors</div><div class="stat-card-val" id="ds-total">—</div><div class="stat-card-sub">Registered leads</div></div>
+          <div class="stat-card"><div class="stat-card-label">This Week</div><div class="stat-card-val" id="ds-week">—</div><div class="stat-card-sub">New registrations</div></div>
+          <div class="stat-card"><div class="stat-card-label">Contacted</div><div class="stat-card-val" id="ds-contacted">—</div><div class="stat-card-sub">Leads followed up</div></div>
+          <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-val" id="ds-pending">—</div><div class="stat-card-sub">Not yet contacted</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Latest Leads</div><button class="btn-sm btn-green" onclick="showPage('visitors')">View All →</button></div>
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Interest</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="dashLeads"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Current Prices (Quick View)</div><button class="btn-sm btn-green" onclick="showPage('prices')">Edit Prices →</button></div>
+          <table>
+            <thead><tr><th>Variety</th><th>Price (₹/kg)</th><th>Change</th><th>Updated</th></tr></thead>
+            <tbody id="dashPrices"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRICES -->
+      <div class="page" id="page-prices">
+        <div class="page-title">Live Prices</div>
+        <div class="page-sub">Update avocado prices — changes go live immediately on the website.</div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Edit Prices</div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span class="saving-indicator" id="savingIndicator">💾 Saving...</span>
+              <button class="btn-sm btn-green" onclick="savePrices()">Save All Prices</button>
+            </div>
+          </div>
+          <div class="price-editor-grid" id="priceEditorGrid">
+            <div style="padding:20px;color:var(--muted);">Loading prices...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POSTS -->
+      <div class="page" id="page-posts">
+        <div class="page-title">Blog Posts</div>
+        <div class="page-sub">Write and publish market insights, price reports, and company news.</div>
+
+        <!-- New Post Form -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">✍️ New Post</div></div>
+          <div class="post-editor">
+            <div class="form-row-2">
+              <div>
+                <label>Author Name</label>
+                <input type="text" id="p-author" placeholder="Anil Kumar" />
+              </div>
+              <div>
+                <label>Author Role</label>
+                <input type="text" id="p-role" placeholder="Head of Procurement" />
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div>
+                <label>Category</label>
+                <select id="p-category">
+                  <option>Market</option><option>Agriculture</option>
+                  <option>News</option><option>Trade</option><option>Report</option>
+                </select>
+              </div>
+              <div>
+                <label>Author Initials (for avatar)</label>
+                <input type="text" id="p-initials" placeholder="AK" maxlength="2" />
+              </div>
+            </div>
+            <label>Post Title *</label>
+            <input type="text" id="p-title" placeholder="e.g. Avocado prices expected to rise in Q3 2024" />
+            <label>Short Excerpt (shown in feed)</label>
+            <textarea id="p-excerpt" placeholder="A 2–3 sentence summary that appears in the blog feed..."></textarea>
+            <label>Full Content</label>
+            <textarea id="p-content" style="min-height:200px;" placeholder="Full article text goes here..."></textarea>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <button class="btn-sm btn-green" style="padding:10px 20px;" onclick="createPost()">Publish Post</button>
+              <button class="btn-sm btn-gray" style="padding:10px 20px;" onclick="clearPostForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Posts List -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Published Posts</div></div>
+          <table>
+            <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Date</th><th>Likes</th><th>Actions</th></tr></thead>
+            <tbody id="postsTable"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISITORS -->
+      <div class="page" id="page-visitors">
+        <div class="page-title">Visitor Leads</div>
+        <div class="page-sub">All registered visitors from the website. Export to CSV or mark as contacted.</div>
+
+        <div class="filter-bar">
+          <input type="text" id="searchInput" placeholder="🔍 Search by name or email..." oninput="filterVisitors()" />
+          <select id="filterInterest" onchange="filterVisitors()">
+            <option value="">All Interests</option>
+            <option>Wholesale / Bulk Supply</option>
+            <option>Retail / Small Orders</option>
+            <option>Restaurant / HORECA Supply</option>
+            <option>Supermarket / Modern Trade</option>
+            <option>Just Price Updates</option>
+            <option>General Enquiry</option>
+          </select>
+          <select id="filterContacted" onchange="filterVisitors()">
+            <option value="">All Status</option>
+            <option value="false">Not Contacted</option>
+            <option value="true">Contacted</option>
+          </select>
+          <button class="btn-sm btn-green" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Leads <span id="visitorCount" style="font-weight:400;color:var(--muted);font-size:0.85rem;"></span></div>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Interest</th><th>City</th><th>Source</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="visitorsTable"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SALES REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="page-title">Sales Reports</div>
+        <div class="page-sub">Track your sales performance and publish reports to the website.</div>
+        <div class="stat-cards">
+          <div class="stat-card"><div class="stat-card-label">This Month</div><div class="stat-card-val">₹24L</div><div class="stat-card-sub">Estimated revenue</div></div>
+          <div class="stat-card"><div class="stat-card-label">Tonnes Sold</div><div class="stat-card-val">42.5</div><div class="stat-card-sub">This month</div></div>
+          <div class="stat-card"><div class="stat-card-label">Top Variety</div><div class="stat-card-val" style="font-size:1.2rem;">Hass</div><div class="stat-card-sub">By volume</div></div>
+          <div class="stat-card"><div class="stat-card-label">Active Clients</div><div class="stat-card-val">148</div><div class="stat-card-sub">This month</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Post a Sales / Quality Report</div></div>
+          <div class="post-editor">
+            <label>Report Title</label>
+            <input type="text" id="r-title" placeholder="e.g. June 2024 Quality & Sales Report" />
+            <div class="form-row-2">
+              <div>
+                <label>Category</label>
+                <select id="r-category"><option>Report</option><option>Market</option><option>News</option></select>
+              </div>
+              <div>
+                <label>Period</label>
+                <input type="text" id="r-period" placeholder="e.g. June 2024" />
+              </div>
+            </div>
+            <label>Key Highlights (shown in blog feed)</label>
+            <textarea id="r-excerpt" placeholder="• Total sales: 42.5 tonnes&#10;• Top variety: Hass (60% of volume)&#10;• Quality score: 94/100"></textarea>
+            <label>Full Report Details</label>
+            <textarea id="r-content" style="min-height:200px;" placeholder="Detailed monthly breakdown, quality analysis, market observations..."></textarea>
+            <button class="btn-sm btn-green" style="padding:10px 20px;" onclick="publishReport()">Publish Report to Website</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Published Reports</div></div>
+          <table>
+            <thead><tr><th>Title</th><th>Period</th><th>Date Published</th><th>Likes</th><th>Actions</th></tr></thead>
+            <tbody id="reportsTable"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No reports yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-wrap -->
+</div><!-- /app -->
+
+<script>
+  // ── SET THIS TO YOUR DEPLOYED BACKEND URL AFTER DEPLOYING THE BACKEND ──
+  const API_BASE = 'https://avoindia-website.vercel.app';
+  let adminToken = sessionStorage.getItem('avo_admin_token') || '';
+  let allVisitors = [];
+  let allPrices = [];
+
+  // ── TOAST ──
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── LOGIN ──
+  async function doLogin() {
+    const pwd = document.getElementById('loginPwd').value;
+    if (!pwd) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      adminToken = data.token;
+      sessionStorage.setItem('avo_admin_token', adminToken);
+      showApp();
+    } catch (e) {
+      document.getElementById('loginErr').style.display = 'block';
+      setTimeout(() => document.getElementById('loginErr').style.display = 'none', 3000);
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('avo_admin_token');
+    adminToken = '';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+
+  function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadDashboard();
+    loadPrices();
+    loadPosts();
+    loadVisitors();
+  }
+
+  // ── PAGES ──
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.getElementById(`page-${id}`).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (id === 'reports') loadReports();
+  }
+
+  // ── DASHBOARD ──
+  async function loadDashboard() {
+    try {
+      const res = await fetch(`${API_BASE}/api/visitors`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      const { visitors, total } = await res.json();
+      document.getElementById('ds-total').textContent = total;
+      const now = new Date();
+      const weekAgo = new Date(now - 7 * 86400000);
+      const thisWeek = visitors.filter(v => new Date(v.registeredAt) > weekAgo).length;
+      const contacted = visitors.filter(v => v.contacted).length;
+      document.getElementById('ds-week').textContent = thisWeek;
+      document.getElementById('ds-contacted').textContent = contacted;
+      document.getElementById('ds-pending').textContent = total - contacted;
+
+      const tbody = document.getElementById('dashLeads');
+      tbody.innerHTML = visitors.slice(0, 8).map(v => `
+        <tr>
+          <td><strong>${v.name}</strong></td>
+          <td>${v.email}</td>
+          <td><span class="badge badge-blue">${v.interest?.slice(0,22)}${v.interest?.length > 22 ? '…' : ''}</span></td>
+          <td>${new Date(v.registeredAt).toLocaleDateString('en-IN')}</td>
+          <td><span class="badge ${v.contacted ? 'badge-green' : 'badge-yellow'}">${v.contacted ? 'Contacted' : 'Pending'}</span></td>
+        </tr>`).join('');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ── PRICES ──
+  async function loadPrices() {
+    try {
+      const res = await fetch(`${API_BASE}/api/prices`);
+      allPrices = await res.json();
+      renderPriceEditor(allPrices);
+      renderDashPrices(allPrices);
+    } catch (e) {
+      document.getElementById('priceEditorGrid').innerHTML = '<div style="color:red;padding:20px;">Error loading prices.</div>';
+    }
+  }
+
+  function renderPriceEditor(prices) {
+    document.getElementById('priceEditorGrid').innerHTML = prices.map((p, i) => `
+      <div class="price-edit-card">
+        <h4>🥑 ${p.variety}</h4>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Current Price (₹/kg)</label>
+            <input type="number" id="pe-price-${i}" value="${p.price}" min="0" />
+          </div>
+          <div class="field-group">
+            <label>Change %</label>
+            <input type="number" id="pe-change-${i}" value="${p.change}" step="0.1" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Yesterday (₹/kg)</label>
+            <input type="number" id="pe-prev-${i}" value="${p.prevPrice}" min="0" />
+          </div>
+          <div class="field-group">
+            <label>Last Week (₹/kg)</label>
+            <input type="number" id="pe-week-${i}" value="${p.weekPrice}" min="0" />
+          </div>
+        </div>
+        <div class="field-group" style="margin-top:4px;">
+          <label>Trend Bar Fill %</label>
+          <input type="number" id="pe-fill-${i}" value="${p.fillPct}" min="0" max="100" />
+        </div>
+        <input type="hidden" id="pe-slug-${i}" value="${p.slug}" />
+        <input type="hidden" id="pe-variety-${i}" value="${p.variety}" />
+      </div>`).join('');
+  }
+
+  function renderDashPrices(prices) {
+    document.getElementById('dashPrices').innerHTML = prices.map(p => `
+      <tr>
+        <td><strong>${p.variety}</strong></td>
+        <td>₹${p.price}/kg</td>
+        <td><span class="${p.change >= 0 ? 'badge badge-green' : 'badge badge-red'}">${p.change >= 0 ? '▲' : '▼'} ${Math.abs(p.change)}%</span></td>
+        <td>${p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('en-IN') : 'N/A'}</td>
+      </tr>`).join('');
+  }
+
+  async function savePrices() {
+    const ind = document.getElementById('savingIndicator');
+    ind.classList.add('show');
+    const updates = allPrices.map((_, i) => ({
+      slug: document.getElementById(`pe-slug-${i}`).value,
+      variety: document.getElementById(`pe-variety-${i}`).value,
+      price: parseFloat(document.getElementById(`pe-price-${i}`).value),
+      change: parseFloat(document.getElementById(`pe-change-${i}`).value),
+      prevPrice: parseFloat(document.getElementById(`pe-prev-${i}`).value),
+      weekPrice: parseFloat(document.getElementById(`pe-week-${i}`).value),
+      fillPct: parseInt(document.getElementById(`pe-fill-${i}`).value),
+      badge: parseFloat(document.getElementById(`pe-change-${i}`).value) >= 0 ? 'up' : 'down',
+    }));
+    try {
+      const res = await fetch(`${API_BASE}/api/prices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error('Failed');
+      ind.classList.remove('show');
+      toast('✅ Prices updated! Changes are now live on the website.');
+      renderDashPrices(updates);
+    } catch (e) {
+      ind.classList.remove('show');
+      toast('Error saving prices. Check your connection.', 'error');
+    }
+  }
+
+  // ── POSTS ──
+  async function loadPosts() {
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`);
+      const posts = await res.json();
+      renderPostsTable(posts);
+    } catch (e) {}
+  }
+
+  function renderPostsTable(posts) {
+    const tbody = document.getElementById('postsTable');
+    if (!posts.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">No posts yet. Create one above!</td></tr>'; return; }
+    tbody.innerHTML = posts.map(p => `
+      <tr>
+        <td><strong>${p.title}</strong></td>
+        <td><span class="badge badge-blue">${p.category}</span></td>
+        <td>${p.author}</td>
+        <td>${new Date(p.createdAt).toLocaleDateString('en-IN')}</td>
+        <td>${p.likes || 0}</td>
+        <td>
+          <button class="btn-sm btn-red" onclick="deletePost('${p.slug}')">Delete</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function createPost() {
+    const title = document.getElementById('p-title').value.trim();
+    const excerpt = document.getElementById('p-excerpt').value.trim();
+    const content = document.getElementById('p-content').value.trim();
+    const author = document.getElementById('p-author').value.trim() || 'AvoIndia Team';
+    const authorRole = document.getElementById('p-role').value.trim() || 'Team';
+    const authorInitials = document.getElementById('p-initials').value.trim().toUpperCase() || author.slice(0, 2).toUpperCase();
+    const category = document.getElementById('p-category').value;
+    if (!title || !excerpt) { toast('Title and excerpt are required.', 'error'); return; }
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ title, excerpt, content, author, authorRole, authorInitials, category, authorColor: '#2d6a4f' })
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast('✅ Post published! It\'s now live on the website.');
+      clearPostForm();
+      loadPosts();
+    } catch (e) {
+      toast('Error publishing post.', 'error');
+    }
+  }
+
+  function clearPostForm() {
+    ['p-title','p-excerpt','p-content','p-author','p-role','p-initials'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  async function deletePost(slug) {
+    if (!confirm('Delete this post? This cannot be undone.')) return;
+    try {
+      await fetch(`${API_BASE}/api/posts?slug=${encodeURIComponent(slug)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      toast('Post deleted.');
+      loadPosts();
+    } catch (e) { toast('Error deleting post.', 'error'); }
+  }
+
+  // ── VISITORS ──
+  async function loadVisitors() {
+    try {
+      const res = await fetch(`${API_BASE}/api/visitors?limit=200`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      const data = await res.json();
+      allVisitors = data.visitors || [];
+      renderVisitors(allVisitors);
+    } catch (e) {
+      document.getElementById('visitorsTable').innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">Error loading visitors.</td></tr>';
+    }
+  }
+
+  function renderVisitors(list) {
+    document.getElementById('visitorCount').textContent = `(${list.length} leads)`;
+    const tbody = document.getElementById('visitorsTable');
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">No visitors yet. They\'ll appear as people register on your site.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(v => `
+      <tr id="vrow-${v.email?.replace(/[^a-z0-9]/gi, '_')}">
+        <td><strong>${v.name}</strong></td>
+        <td><a href="mailto:${v.email}" style="color:var(--green);">${v.email}</a></td>
+        <td>${v.phone || '—'}</td>
+        <td><span class="badge badge-blue">${v.interest?.slice(0, 20)}${v.interest?.length > 20 ? '…' : ''}</span></td>
+        <td>${v.city || '—'}</td>
+        <td><span class="badge badge-gray">${v.source || 'website'}</span></td>
+        <td>${new Date(v.registeredAt).toLocaleDateString('en-IN')}</td>
+        <td><span class="badge ${v.contacted ? 'badge-green' : 'badge-yellow'}">${v.contacted ? '✓ Contacted' : 'Pending'}</span></td>
+        <td style="white-space:nowrap;">
+          <button class="btn-sm ${v.contacted ? 'btn-gray' : 'btn-green'}" onclick="toggleContacted('${v.email}', ${!v.contacted})" style="margin-right:4px;">${v.contacted ? 'Unmark' : '✓ Mark'}</button>
+          <a href="mailto:${v.email}" class="btn-sm btn-blue">Email</a>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function toggleContacted(email, contacted) {
+    try {
+      await fetch(`${API_BASE}/api/visitors`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ email, contacted })
+      });
+      // Update local state
+      const v = allVisitors.find(x => x.email === email);
+      if (v) v.contacted = contacted;
+      filterVisitors();
+      toast(contacted ? '✓ Marked as contacted.' : 'Unmarked.');
+    } catch (e) { toast('Error updating status.', 'error'); }
+  }
+
+  function filterVisitors() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const interest = document.getElementById('filterInterest').value;
+    const contacted = document.getElementById('filterContacted').value;
+    let list = allVisitors;
+    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search) || v.email?.toLowerCase().includes(search));
+    if (interest) list = list.filter(v => v.interest === interest);
+    if (contacted !== '') list = list.filter(v => String(v.contacted) === contacted);
+    renderVisitors(list);
+  }
+
+  function exportCSV() {
+    const headers = ['Name','Email','Phone','Interest','City','Source','Date Registered','Contacted'];
+    const rows = allVisitors.map(v => [
+      v.name, v.email, v.phone || '', v.interest || '', v.city || '', v.source || '',
+      new Date(v.registeredAt).toLocaleDateString('en-IN'), v.contacted ? 'Yes' : 'No'
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `avoindia-leads-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast('✅ CSV exported!');
+  }
+
+  // ── SALES REPORTS ──
+  async function loadReports() {
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`);
+      const posts = await res.json();
+      const reports = posts.filter(p => p.category === 'Report');
+      const tbody = document.getElementById('reportsTable');
+      if (!reports.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No reports published yet.</td></tr>'; return; }
+      tbody.innerHTML = reports.map(r => `
+        <tr>
+          <td><strong>${r.title}</strong></td>
+          <td>${r.period || '—'}</td>
+          <td>${new Date(r.createdAt).toLocaleDateString('en-IN')}</td>
+          <td>${r.likes || 0}</td>
+          <td><button class="btn-sm btn-red" onclick="deletePost('${r.slug}')">Delete</button></td>
+        </tr>`).join('');
+    } catch (e) {}
+  }
+
+  async function publishReport() {
+    const title = document.getElementById('r-title').value.trim();
+    const excerpt = document.getElementById('r-excerpt').value.trim();
+    const content = document.getElementById('r-content').value.trim();
+    const category = document.getElementById('r-category').value;
+    const period = document.getElementById('r-period').value.trim();
+    if (!title || !excerpt) { toast('Title and highlights are required.', 'error'); return; }
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ title, excerpt, content, category, period, author: 'AvoIndia Reports', authorRole: 'Management Team', authorInitials: 'AR', authorColor: '#7c3aed' })
+      });
+      if (!res.ok) throw new Error();
+      toast('✅ Report published to website!');
+      ['r-title','r-excerpt','r-content','r-period'].forEach(id => document.getElementById(id).value = '');
+      loadReports();
+    } catch (e) { toast('Error publishing report.', 'error'); }
+  }
+
+  // ── INIT ──
+  if (adminToken) {
+    showApp();
+  }
+</script>
+</body>
+</html>
