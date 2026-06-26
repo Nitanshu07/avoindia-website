@@ -1,6 +1,6 @@
 {
   "name": "avoindia-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AvoIndia API",
   "dependencies": {
     "mongodb": "^6.3.0",
