@@ -207,8 +207,31 @@
     .post-footer{display:flex;align-items:center;gap:16px;margin-top:14px;}
     .post-date{font-size:0.78rem;color:var(--muted);}
     .post-actions{display:flex;gap:14px;margin-left:auto;}
-    .post-action{display:flex;align-items:center;gap:4px;font-size:0.8rem;color:var(--muted);cursor:pointer;background:none;border:none;transition:color 0.15s,transform 0.15s;}
-    .post-action:hover{color:var(--green);transform:scale(1.1);}
+    .post-action{display:flex;align-items:center;gap:4px;font-size:0.8rem;color:var(--muted);cursor:pointer;background:none;border:none;transition:color 0.15s,transform 0.15s,font-weight 0.15s;padding:4px 8px;border-radius:8px;}
+    .post-action:hover{color:var(--green);transform:scale(1.1);background:var(--green-pale);}
+    .post-action.liked{color:#e11d48;font-weight:600;}
+    .post-action.liked:hover{color:#be123c;background:#ffe4e6;}
+    .post-action.commented{color:var(--green);font-weight:600;}
+    @keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
+    .heart-pop{animation:heartPop 0.35s cubic-bezier(0.22,1,0.36,1);}
+
+    /* ── COMMENT SECTION ── */
+    .comment-section{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;animation:fadeSlideIn 0.25s ease;}
+    .comment-section.open{display:block;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .comment-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+    .comment-item{display:flex;gap:10px;align-items:flex-start;}
+    .comment-avatar{width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--white);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .comment-body{background:var(--bg);border-radius:10px;padding:8px 12px;flex:1;font-size:0.83rem;line-height:1.5;}
+    .comment-name{font-weight:600;font-size:0.78rem;color:var(--text);margin-bottom:2px;}
+    .comment-text{color:var(--muted);}
+    .comment-time{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+    .comment-form-row{display:flex;gap:8px;margin-top:4px;}
+    .comment-input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:0.84rem;font-family:inherit;outline:none;transition:border-color 0.2s,box-shadow 0.2s;background:var(--bg);}
+    .comment-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(45,106,79,0.1);}
+    .comment-send{background:var(--green);color:var(--white);border:none;border-radius:10px;padding:8px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;white-space:nowrap;font-family:inherit;}
+    .comment-send:hover{background:var(--green-mid);transform:translateY(-1px);}
+    .comment-empty{font-size:0.82rem;color:var(--muted);text-align:center;padding:10px 0;}
 
     /* ── SIDEBAR ── */
     .blog-sidebar{display:flex;flex-direction:column;gap:20px;}
@@ -410,7 +433,7 @@
 <nav id="mainNav">
   <a class="nav-logo" href="#home">🥑 Avo<span>India</span></a>
   <ul class="nav-links">
-    <li><a href="#home">Home</a></li>
+    <li><a href=""home">Home</a></li>
     <li><a href="#prices">Live Prices</a></li>
     <li><a href="#products">Products</a></li>
     <li><a href="#blog">Insights</a></li>
@@ -839,7 +862,11 @@ async function loadPosts() {
     if (!Array.isArray(posts) || !posts.length) { if(feed) feed.innerHTML = '<p style="color:var(--muted);padding:20px;">No posts yet.</p>'; return; }
     if (feed) feed.innerHTML = posts.map((p, i) => {
       const isLocked = !currentUser && i >= 1;
-      return `<div class="blog-post ${isLocked ? 'locked' : ''} reveal" style="transition-delay:${i * 0.1}s">
+      const slug = p.slug || ('post-' + i);
+      const liked = isPostLiked(slug);
+      const likeCount = (p.likes || 0) + (liked ? 1 : 0);
+      const commentCount = getComments(slug).length || p.comments || 0;
+      return `<div class="blog-post ${isLocked ? 'locked' : ''} reveal" id="post-${slug}" style="transition-delay:${i * 0.1}s">
         <div class="post-meta">
           <div class="post-avatar" style="background:${p.authorColor || '#2d6a4f'}">${p.authorInitials || 'AV'}</div>
           <div><div class="post-author">${p.author || 'AvoIndia'}</div><div class="post-role">${p.authorRole || 'Team'}</div></div>
@@ -849,13 +876,129 @@ async function loadPosts() {
         <div class="post-excerpt">${p.excerpt || ''}</div>
         <div class="post-footer">
           <span class="post-date">${new Date(p.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</span>
-          <div class="post-actions"><button class="post-action">❤️ ${p.likes || 0}</button><button class="post-action">💬 ${p.comments || 0}</button></div>
+          <div class="post-actions">
+            <button class="post-action ${liked ? 'liked' : ''}" id="like-${slug}" onclick="toggleLike('${slug}', this, ${p.likes || 0})">
+              ${liked ? '❤️' : '🤍'} <span class="like-count">${likeCount}</span>
+            </button>
+            <button class="post-action" id="comment-btn-${slug}" onclick="toggleComments('${slug}', this)">
+              💬 <span class="comment-count">${commentCount}</span>
+            </button>
+          </div>
+        </div>
+        <div class="comment-section" id="comments-${slug}">
+          <div class="comment-list" id="comment-list-${slug}"></div>
+          <div class="comment-form-row">
+            <input class="comment-input" id="comment-input-${slug}" placeholder="${currentUser ? 'Add a comment…' : 'Sign in to comment…'}" ${!currentUser ? 'disabled' : ''} onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment('${slug}')}" />
+            <button class="comment-send" onclick="submitComment('${slug}')" ${!currentUser ? 'disabled style=&quot;opacity:0.5;cursor:not-allowed&quot;' : ''}>Send</button>
+          </div>
         </div>
         ${isLocked ? `<div class="post-lock-overlay" onclick="openLoginModal()"><div class="lock-icon">🔒</div><div class="lock-text">Sign in to read</div><div class="lock-sub">Free access</div></div>` : ''}
       </div>`;
     }).join('');
     setTimeout(initReveal, 100);
   } catch(e) { if(feed) feed.innerHTML = '<p style="color:var(--muted);padding:20px;">Could not load posts.</p>'; }
+}
+
+// ── LIKES & COMMENTS ──
+const LIKED_KEY = 'avo_liked_posts';
+const COMMENTS_KEY = 'avo_comments';
+
+function getLikedSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || '[]')); } catch { return new Set(); }
+}
+function saveLikedSet(set) {
+  try { localStorage.setItem(LIKED_KEY, JSON.stringify([...set])); } catch {}
+}
+function isPostLiked(slug) { return getLikedSet().has(slug); }
+
+function getComments(slug) {
+  try { return JSON.parse(localStorage.getItem(COMMENTS_KEY + '_' + slug) || '[]'); } catch { return []; }
+}
+function saveComments(slug, comments) {
+  try { localStorage.setItem(COMMENTS_KEY + '_' + slug, JSON.stringify(comments)); } catch {}
+}
+
+function toggleLike(slug, btn, baseCount) {
+  const set = getLikedSet();
+  const wasLiked = set.has(slug);
+  if (wasLiked) { set.delete(slug); } else { set.add(slug); }
+  saveLikedSet(set);
+  const nowLiked = !wasLiked;
+  btn.classList.toggle('liked', nowLiked);
+  btn.innerHTML = `${nowLiked ? '❤️' : '🤍'} <span class="like-count">${baseCount + (nowLiked ? 1 : 0)}</span>`;
+  btn.classList.remove('heart-pop');
+  void btn.offsetWidth;
+  btn.classList.add('heart-pop');
+  // Optimistic backend sync (non-blocking)
+  if (nowLiked) {
+    fetch(API + '/posts/like', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({slug}) }).catch(()=>{});
+  }
+}
+
+function toggleComments(slug, btn) {
+  const section = document.getElementById('comments-' + slug);
+  if (!section) return;
+  const isOpen = section.classList.toggle('open');
+  btn.classList.toggle('commented', isOpen);
+  if (isOpen) renderCommentList(slug);
+}
+
+function renderCommentList(slug) {
+  const list = document.getElementById('comment-list-' + slug);
+  if (!list) return;
+  const comments = getComments(slug);
+  if (!comments.length) {
+    list.innerHTML = '<div class="comment-empty">No comments yet. Be the first! 🥑</div>';
+    return;
+  }
+  list.innerHTML = comments.map(c => {
+    const initials = (c.name || 'A').slice(0, 2).toUpperCase();
+    const color = stringToColor(c.name || 'A');
+    const timeAgo = formatTimeAgo(c.ts);
+    return `<div class="comment-item">
+      <div class="comment-avatar" style="background:${color}">${initials}</div>
+      <div class="comment-body">
+        <div class="comment-name">${escHtml(c.name)}</div>
+        <div class="comment-text">${escHtml(c.text)}</div>
+        <div class="comment-time">${timeAgo}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function submitComment(slug) {
+  if (!currentUser) { openLoginModal(); return; }
+  const input = document.getElementById('comment-input-' + slug);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const comments = getComments(slug);
+  const newComment = { name: currentUser.name || currentUser.email || 'User', text, ts: Date.now() };
+  comments.push(newComment);
+  saveComments(slug, comments);
+  input.value = '';
+  renderCommentList(slug);
+  // Update comment count badge
+  const countEl = document.querySelector(`#comment-btn-${slug} .comment-count`);
+  if (countEl) countEl.textContent = comments.length;
+  showToast('Comment added! 💬');
+}
+
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h},45%,42%)`;
+}
+function formatTimeAgo(ts) {
+  const diff = (Date.now() - ts) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── CONTACT FORM ──
@@ -994,6 +1137,91 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('visitorModal').classList.add('hidden');
   }
 });
+</script>
+</body>
+</html>
+led')) {
+        observer.observe(el);
+      }
+    });
+  }
+
+  // COUNT-UP ANIMATION FOR STATS
+  function countUp(el, target, suffix) {
+    const duration = 1600;
+    const start = Date.now();
+    const startVal = 0;
+    function update() {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(startVal + (target - startVal) * ease);
+      el.textContent = current + suffix;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
+  function initCountUp() {
+    const statObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.target);
+          const suffix = el.dataset.suffix || '';
+          if (!isNaN(target) && !el.dataset.counted) {
+            el.dataset.counted = '1';
+            countUp(el, target, suffix);
+          }
+          statObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+      statObserver.observe(el);
+    });
+  }
+
+  // HERO AVO MOUSE PARALLAX
+  function initHeroParallax() {
+    const hero = document.querySelector('.hero');
+    const avo = document.getElementById('heroAvo');
+    if (!hero || !avo) return;
+    hero.addEventListener('mousemove', (e) => {
+      const rect = hero.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+      const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+      avo.style.transform = `translateY(${y * -20}px) translateX(${x * -15}px) rotate(${x * 5}deg)`;
+    });
+    hero.addEventListener('mouseleave', () => {
+      avo.style.transform = '';
+    });
+  }
+
+  // ── INIT ──
+  window.addEventListener('DOMContentLoaded', () => {
+    updateNavUser();
+    loadPrices();
+    loadPosts();
+    applyGates();
+    createParticles();
+    initReveal();
+    initCountUp();
+    initHeroParallax();
+    // Card tilt init after a short delay (price cards may not be rendered yet)
+    setTimeout(initCardTilt, 1200);
+
+    // Show visitor modal after 4s if not registered
+    if (!localStorage.getItem('avo_registered') && !currentUser) {
+      setTimeout(() => {
+        document.getElementById('visitorModal').classList.remove('hidden');
+      }, 4000);
+    } else {
+      document.getElementById('visitorModal').classList.add('hidden');
+    }
+  });
 </script>
 </body>
 </html>
