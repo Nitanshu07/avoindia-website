@@ -929,12 +929,16 @@ function toggleLike(slug, btn, baseCount) {
   btn.classList.remove('heart-pop');
   void btn.offsetWidth;
   btn.classList.add('heart-pop');
-  // Optimistic backend sync (non-blocking)
+  // Sync to backend (non-blocking)
   if (nowLiked) {
-    fetch(API + '/posts/like', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({slug}) }).catch(()=>{});
+    const u = currentUser || {};
+    fetch(API + '/likes', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ slug, name: u.name || 'Anonymous', email: u.email || '' })
+    }).catch(() => {});
   }
 }
-
 function toggleComments(slug, btn) {
   const section = document.getElementById('comments-' + slug);
   if (!section) return;
@@ -943,10 +947,26 @@ function toggleComments(slug, btn) {
   if (isOpen) renderCommentList(slug);
 }
 
-function renderCommentList(slug) {
+async function renderCommentList(slug) {
   const list = document.getElementById('comment-list-' + slug);
   if (!list) return;
-  const comments = getComments(slug);
+  list.innerHTML = '<div class="comment-empty" style="opacity:0.5">Loading comments…</div>';
+  let comments = getComments(slug);
+  // Fetch from backend and merge
+  try {
+    const r = await fetch(API + '/comments?slug=' + encodeURIComponent(slug));
+    if (r.ok) {
+      const backendComments = await r.json();
+      if (Array.isArray(backendComments) && backendComments.length > 0) {
+        const backendKeys = new Set(backendComments.map(c => c.name + '||' + c.text));
+        const localOnly = comments.filter(c => !backendKeys.has(c.name + '||' + c.text));
+        comments = [...backendComments, ...localOnly].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+        saveComments(slug, comments.map(c => ({ name: c.name, text: c.text, ts: c.ts || Date.now() })));
+        const countEl = document.querySelector(`#comment-btn-${slug} .comment-count`);
+        if (countEl) countEl.textContent = comments.length;
+      }
+    }
+  } catch {}
   if (!comments.length) {
     list.innerHTML = '<div class="comment-empty">No comments yet. Be the first! 🥑</div>';
     return;
@@ -965,25 +985,29 @@ function renderCommentList(slug) {
     </div>`;
   }).join('');
 }
-
 function submitComment(slug) {
   if (!currentUser) { openLoginModal(); return; }
   const input = document.getElementById('comment-input-' + slug);
   if (!input) return;
   const text = input.value.trim();
   if (!text) { input.focus(); return; }
+  const name = currentUser.name || currentUser.email || 'User';
   const comments = getComments(slug);
-  const newComment = { name: currentUser.name || currentUser.email || 'User', text, ts: Date.now() };
+  const newComment = { name, text, ts: Date.now() };
   comments.push(newComment);
   saveComments(slug, comments);
   input.value = '';
   renderCommentList(slug);
-  // Update comment count badge
   const countEl = document.querySelector(`#comment-btn-${slug} .comment-count`);
   if (countEl) countEl.textContent = comments.length;
+  // Save to backend
+  fetch(API + '/comments', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ slug, name, email: currentUser.email || '', text })
+  }).catch(() => {});
   showToast('Comment added! 💬');
 }
-
 function stringToColor(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
