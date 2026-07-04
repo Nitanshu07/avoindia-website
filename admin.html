@@ -372,6 +372,7 @@
       <div class="nav-section-label">Leads &amp; CRM</div>
       <a class="sidebar-item" onclick="showPage('visitors',this)"><span class="icon">👥</span>Visitor Leads</a>
       <a class="sidebar-item" onclick="showPage('reports',this)"><span class="icon">📈</span>Sales Reports</a>
+      <a class="sidebar-item" onclick="showPage('engagement',this)"><span class="icon">💬</span>Engagement</a>
     </div>
 
     <!-- CONTENT -->
@@ -542,7 +543,37 @@
         </div>
       </div>
 
-    </div><!-- /content -->
+    
+      <!-- ENGAGEMENT: COMMENTS & LIKES -->
+      <div class="page" id="page-engagement">
+        <div class="page-title">Engagement</div>
+        <div class="page-sub">All comments and likes from blog posts on the website.</div>
+        <div class="stat-cards" id="engagementStats">
+          <div class="stat-card reveal"><div class="stat-card-label">Total Comments</div><div class="stat-card-val" id="eng-total-comments">—</div><div class="stat-card-sub">Across all posts</div></div>
+          <div class="stat-card reveal"><div class="stat-card-label">Total Likes</div><div class="stat-card-val" id="eng-total-likes">—</div><div class="stat-card-sub">Across all posts</div></div>
+          <div class="stat-card reveal"><div class="stat-card-label">Most Commented</div><div class="stat-card-val" id="eng-top-post" style="font-size:0.95rem;">—</div><div class="stat-card-sub">Post with most comments</div></div>
+          <div class="stat-card reveal"><div class="stat-card-label">Most Liked</div><div class="stat-card-val" id="eng-most-liked" style="font-size:0.95rem;">—</div><div class="stat-card-sub">Post with most likes</div></div>
+        </div>
+        <!-- Likes per post -->
+        <div class="card reveal">
+          <div class="card-header"><div class="card-title">❤️ Likes Per Post</div><button class="btn-sm btn-green" onclick="loadEngagement()">↻ Refresh</button></div>
+          <table>
+            <thead><tr><th>Post Title</th><th>Slug</th><th>Likes</th><th>Trend</th></tr></thead>
+            <tbody id="likesTable"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <!-- All comments -->
+        <div class="card reveal" style="margin-top:24px;">
+          <div class="card-header">
+            <div class="card-title">💬 All Comments</div>
+            <input type="text" id="commentSearch" placeholder="🔍 Search comments…" oninput="filterComments()" style="width:220px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.84rem;outline:none;" />
+          </div>
+          <table>
+            <thead><tr><th>Post</th><th>Author</th><th>Email</th><th>Comment</th><th>Time</th><th>Action</th></tr></thead>
+            <tbody id="commentsTable"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div></div><!-- /content -->
   </div><!-- /main-wrap -->
 </div><!-- /app -->
 
@@ -693,6 +724,7 @@
     document.getElementById(`page-${id}`).classList.add('active');
     if (el) el.classList.add('active');
     if (id === 'reports') loadReports();
+    if (id === 'engagement') loadEngagement();
     setTimeout(initReveal, 50);
     setTimeout(initStatCardTilt, 100);
   }
@@ -980,6 +1012,106 @@
 
   // ── INIT ──
   if (adminToken) showApp();
-  </script>
+  
+
+  // ── ENGAGEMENT ──
+  let allComments = [];
+  let allPostLikes = [];
+
+  async function loadEngagement() {
+    try {
+      const [commentsRes, likesRes] = await Promise.all([
+        fetch(`${API_BASE}/api/comments?all=1`, { headers: { 'Authorization': `Bearer ${adminToken}` } }),
+        fetch(`${API_BASE}/api/likes`, { headers: { 'Authorization': `Bearer ${adminToken}` } })
+      ]);
+      allComments = commentsRes.ok ? await commentsRes.json() : [];
+      const likesData = likesRes.ok ? await likesRes.json() : {};
+      allPostLikes = likesData.postLikes || [];
+      renderEngagement();
+    } catch (e) {
+      document.getElementById('commentsTable').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Error loading data.</td></tr>';
+      document.getElementById('likesTable').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Error loading data.</td></tr>';
+    }
+  }
+
+  function renderEngagement() {
+    const totalComments = allComments.length;
+    const totalLikes = allPostLikes.reduce((s, p) => s + (p.likes || 0), 0);
+    const commentsBySlug = {};
+    allComments.forEach(c => { commentsBySlug[c.slug] = (commentsBySlug[c.slug] || 0) + 1; });
+    const topCommentSlug = Object.entries(commentsBySlug).sort((a,b) => b[1]-a[1])[0];
+    const topPostName = topCommentSlug ? topCommentSlug[0].replace(/-/g,' ').slice(0,22)+'…' : '—';
+    const mostLiked = [...allPostLikes].sort((a,b) => (b.likes||0)-(a.likes||0))[0];
+    const mostLikedName = mostLiked ? (mostLiked.title||mostLiked.slug||'').slice(0,22)+'…' : '—';
+    document.getElementById('eng-total-comments').textContent = totalComments;
+    document.getElementById('eng-total-likes').textContent = totalLikes;
+    document.getElementById('eng-top-post').textContent = topPostName;
+    document.getElementById('eng-most-liked').textContent = mostLikedName;
+    const likesBody = document.getElementById('likesTable');
+    if (!allPostLikes.length) {
+      likesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">No posts yet.</td></tr>';
+    } else {
+      const sorted = [...allPostLikes].sort((a,b) => (b.likes||0)-(a.likes||0));
+      const max = sorted[0]?.likes || 1;
+      likesBody.innerHTML = sorted.map(p => {
+        const pct = Math.round(((p.likes||0)/max)*100);
+        return `<tr>
+          <td><strong>${p.title||'—'}</strong></td>
+          <td style="color:var(--muted);font-size:0.8rem;">${p.slug||''}</td>
+          <td><strong style="color:var(--green)">❤️ ${p.likes||0}</strong></td>
+          <td style="width:140px"><div style="background:var(--bg);border-radius:20px;height:8px;overflow:hidden"><div style="background:var(--green);height:100%;width:${pct}%;border-radius:20px;transition:width 0.8s ease"></div></div></td>
+        </tr>`;
+      }).join('');
+    }
+    renderCommentsTable(allComments);
+  }
+
+  function renderCommentsTable(comments) {
+    const tbody = document.getElementById('commentsTable');
+    if (!comments.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No comments yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = comments.map(c => {
+      const d = c.createdAt ? new Date(c.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+      const id = c._id || '';
+      return `<tr>
+        <td style="font-size:0.8rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(c.slug||'')}</td>
+        <td><strong>${escHtml(c.name||'Anon')}</strong></td>
+        <td style="font-size:0.8rem;color:var(--muted);">${escHtml(c.email||'')}</td>
+        <td style="max-width:280px;">${escHtml((c.text||'').slice(0,120))}${(c.text||'').length>120?'…':''}</td>
+        <td style="white-space:nowrap;font-size:0.8rem;">${d}</td>
+        <td><button class="btn-sm btn-red" onclick="deleteComment('${id}')">Delete</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterComments() {
+    const q = (document.getElementById('commentSearch').value || '').toLowerCase();
+    if (!q) { renderCommentsTable(allComments); return; }
+    const filtered = allComments.filter(c =>
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.text||'').toLowerCase().includes(q) ||
+      (c.slug||'').toLowerCase().includes(q) ||
+      (c.email||'').toLowerCase().includes(q)
+    );
+    renderCommentsTable(filtered);
+  }
+
+  async function deleteComment(id) {
+    if (!id || !confirm('Delete this comment?')) return;
+    try {
+      const r = await fetch(`${API_BASE}/api/comments?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (r.ok) { toast('Comment deleted'); loadEngagement(); }
+      else toast('Failed to delete', 'error');
+    } catch { toast('Error', 'error'); }
+  }
+
+  function escHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }</script>
 </body>
 </html>
