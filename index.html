@@ -465,7 +465,7 @@
 
 <!-- VISITOR REGISTER MODAL -->
 <div class="modal-overlay" id="visitorModal">
-  <div class="modal-box">
+  <div class="modal-box" style="position:relative"><button onclick="closeModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;line-height:1" aria-label="Close">&times;</button>
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-icon">🥑</div>
     <h2>Get Live Price Alerts & Exclusive Offers</h2>
@@ -1385,7 +1385,7 @@ function initReveal() {
     if (!localStorage.getItem('avo_registered') && !currentUser) {
       setTimeout(() => {
         document.getElementById('visitorModal').classList.remove('hidden');
-      }, 4000);
+      }, 15000);
     } else {
       document.getElementById('visitorModal').classList.add('hidden');
     }
