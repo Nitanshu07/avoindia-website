@@ -937,6 +937,7 @@ function applyGates() {
   });
   const pgb = document.getElementById('prodGateBanner');
   if (pgb) pgb.style.display = unlocked ? 'none' : '';
+  if (unlocked) loadPosts();
 }
 
 // ── LOAD PRICES ──
