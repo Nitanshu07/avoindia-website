@@ -960,7 +960,7 @@ function logoutUser() {
 // ── MODALS ──
 function closeModal() {
   document.getElementById('visitorModal').classList.add('hidden');
-  localStorage.setItem('avo_modal_dismissed', '1');
+  localStorage.setItem('avo_registered', '1');
 }
 function openLoginModal() {
   document.getElementById('loginModal').classList.remove('hidden');
@@ -1314,80 +1314,7 @@ function initReveal() {
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal, .reveal-left, .reveal-scale').forEach(el => {
-    if (!el.classList.contains('revealed')) observer.observe(el);
-  });
-}
-
-// ── COUNT-UP STATS ──
-function countUp(el, target, suffix) {
-  const duration = 1600;
-  const start = Date.now();
-  function update() {
-    const progress = Math.min((Date.now() - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.round(target * ease) + suffix;
-    if (progress < 1) requestAnimationFrame(update);
-  }
-  requestAnimationFrame(update);
-}
-function initCountUp() {
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const target = parseInt(el.dataset.target);
-        const suffix = el.dataset.suffix || '';
-        if (!isNaN(target) && !el.dataset.counted) {
-          el.dataset.counted = '1';
-          countUp(el, target, suffix);
-        }
-        obs.unobserve(el);
-      }
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll('.stat-num[data-target]').forEach(el => obs.observe(el));
-}
-
-// ── HERO PARALLAX ──
-function initHeroParallax() {
-  const hero = document.querySelector('.hero');
-  const avo = document.getElementById('heroAvo');
-  if (!hero || !avo) return;
-  hero.addEventListener('mousemove', (e) => {
-    const rect = hero.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width/2) / rect.width;
-    const y = (e.clientY - rect.top - rect.height/2) / rect.height;
-    avo.style.transform = `translateY(${y * -20}px) translateX(${x * -15}px) rotate(${x * 5}deg)`;
-  });
-  hero.addEventListener('mouseleave', () => { avo.style.transform = ''; });
-}
-
-// ── INIT ──
-window.addEventListener('DOMContentLoaded', () => {
-  updateNavUser();
-  loadPrices();
-  loadPosts();
-  applyGates();
-  createParticles();
-  initReveal();
-  initCountUp();
-  initHeroParallax();
-  setTimeout(initCardTilt, 1200);
-  const dismissed = localStorage.getItem('avo_modal_dismissed');
-  if (!dismissed && !currentUser) {
-    setTimeout(() => { document.getElementById('visitorModal').classList.remove('hidden'); }, 4000);
-  } else {
-    document.getElementById('visitorModal').classList.add('hidden');
-  }
-});
-
-led')) {
-        observer.observe(el);
-      }
-    });
-  }
-
-  // COUNT-UP ANIMATION FOR STATS
+    if (!el.classList.contains('revea  // COUNT-UP ANIMATION FOR STATS
   function countUp(el, target, suffix) {
     const duration = 1600;
     const start = Date.now();
