@@ -465,7 +465,7 @@
 
 <!-- VISITOR REGISTER MODAL -->
 <div class="modal-overlay" id="visitorModal">
-  <div class="modal-box" style="position:relative"><button onclick="closeModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;line-height:1" aria-label="Close">&times;</button>
+  <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-icon">🥑</div>
     <h2>Get Live Price Alerts & Exclusive Offers</h2>
@@ -521,7 +521,7 @@
       </div>
       <button class="modal-submit" onclick="registerVisitor()">Get Free Price Alerts →</button>
     </div>
-    <div class="modal-skip">Already registered? <a onclick="closeModal()">Skip for now</a></div>
+    <div class="modal-skip">Already registered? <a onclick="closeModal();localStorage.setItem('avo_registered','1')">Skip for now</a></div>
   </div>
 </div>
 
