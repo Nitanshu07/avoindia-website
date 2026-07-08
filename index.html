@@ -340,6 +340,45 @@
       .hero{padding:60px 4%;}
       .form-row{grid-template-columns:1fr;}
     }
+
+    .trust-strip{background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);border-top:1px solid rgba(107,167,77,0.2);border-bottom:1px solid rgba(107,167,77,0.2);padding:14px 0;overflow:hidden;}
+    .trust-track{display:flex;gap:56px;animation:trustScroll 28s linear infinite;white-space:nowrap;width:max-content;}
+    .trust-strip:hover .trust-track{animation-play-state:paused;}
+    .trust-item{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,0.82);font-size:0.83rem;font-weight:500;letter-spacing:0.03em;flex-shrink:0;}
+    @keyframes trustScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .trace-wrap{padding:80px 5%;max-width:1200px;margin:0 auto;}
+    .trace-steps{display:flex;align-items:flex-start;margin-top:48px;position:relative;}
+    .trace-steps::before{content:'';position:absolute;top:31px;left:32px;right:32px;height:3px;background:linear-gradient(90deg,#6ba74d,#8fd656);z-index:0;}
+    .trace-step{flex:1;text-align:center;position:relative;z-index:1;padding:0 8px;}
+    .trace-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6ba74d,#8fd656);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 14px;box-shadow:0 4px 20px rgba(107,167,77,0.4);}
+    .trace-label{font-weight:700;color:#fff;font-size:0.92rem;margin-bottom:5px;}
+    .trace-sub{font-size:0.75rem;color:rgba(255,255,255,0.5);}
+    .testi-wrap{padding:80px 5%;max-width:1200px;margin:0 auto;}
+    .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:48px;}
+    .testi-card{background:rgba(255,255,255,0.04);border:1px solid rgba(107,167,77,0.18);border-radius:20px;padding:28px 28px 24px;position:relative;}
+    .testi-card::before{content:'"';font-size:5rem;color:#6ba74d;opacity:0.25;position:absolute;top:4px;left:18px;line-height:1;font-family:Georgia,serif;}
+    .t-text{color:rgba(255,255,255,0.78);font-size:0.91rem;line-height:1.7;margin-bottom:20px;padding-top:24px;}
+    .t-author{display:flex;align-items:center;gap:12px;}
+    .t-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#6ba74d,#8fd656);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#fff;flex-shrink:0;}
+    .t-name{font-weight:700;color:#fff;font-size:0.88rem;}
+    .t-role{font-size:0.75rem;color:#6ba74d;margin-top:2px;}
+    .t-stars{color:#f5c518;font-size:0.82rem;margin-top:3px;}
+    .nl-section{padding:60px 5%;}
+    .nl-inner{background:linear-gradient(135deg,rgba(107,167,77,0.13),rgba(107,167,77,0.04));border:1px solid rgba(107,167,77,0.22);border-radius:24px;padding:48px;text-align:center;max-width:620px;margin:0 auto;}
+    .nl-inner h3{font-size:1.55rem;color:#fff;margin-bottom:10px;}
+    .nl-inner p{color:rgba(255,255,255,0.62);margin-bottom:28px;font-size:0.91rem;}
+    .nl-form{display:flex;gap:10px;}
+    .nl-form input{flex:1;padding:13px 16px;border-radius:12px;border:1px solid rgba(107,167,77,0.3);background:rgba(255,255,255,0.06);color:#fff;font-size:0.9rem;}
+    .nl-form input::placeholder{color:rgba(255,255,255,0.35);}
+    .nl-form button{padding:13px 22px;border-radius:12px;background:linear-gradient(135deg,#6ba74d,#8fd656);color:#fff;font-weight:700;border:none;cursor:pointer;white-space:nowrap;font-size:0.9rem;}
+    @media(max-width:560px){.nl-form{flex-direction:column;}}
+    .product-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);}
+    .meta-badge{font-size:0.7rem;background:rgba(107,167,77,0.1);border:1px solid rgba(107,167,77,0.22);color:rgba(255,255,255,0.65);padding:3px 8px;border-radius:6px;}
+    .fab-cluster{position:fixed;bottom:26px;right:22px;display:flex;flex-direction:column;align-items:flex-end;gap:12px;z-index:9999;}
+    .fab-wa{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:50%;background:#25d366;color:#fff;font-size:1.4rem;text-decoration:none;box-shadow:0 4px 18px rgba(37,211,102,0.45);transition:transform 0.2s;}
+    .fab-wa:hover{transform:scale(1.1);}
+    .fab-quote{display:flex;align-items:center;gap:7px;padding:11px 18px;border-radius:28px;background:linear-gradient(135deg,#6ba74d,#8fd656);color:#fff;font-weight:700;font-size:0.83rem;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(107,167,77,0.4);transition:transform 0.2s;}
+    .fab-quote:hover{transform:scale(1.05);}
   </style>
 </head>
 <body>
@@ -378,6 +417,27 @@
           <option>Just Price Updates</option>
           <option>General Enquiry</option>
         </select>
+      </div>
+            <div class="form-row">
+        <div class="form-group">
+          <label>Order Quantity</label>
+          <select id="v-quantity">
+            <option>Under 100 kg</option>
+            <option>100–500 kg</option>
+            <option>500 kg – 1 tonne</option>
+            <option>1–5 tonnes</option>
+            <option>5+ tonnes / Full Container</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Packaging Preference</label>
+          <select id="v-packaging">
+            <option>Standard Cartons (4 kg)</option>
+            <option>Bulk Bins</option>
+            <option>Custom / Private Label</option>
+            <option>No Preference</option>
+          </select>
+        </div>
       </div>
       <button class="modal-submit" onclick="registerVisitor()">Get Free Price Alerts →</button>
     </div>
@@ -475,6 +535,28 @@
   <div class="stat-item reveal" style="transition-delay:0.4s"><div class="stat-num" data-target="1200" data-suffix="+">1200+</div><div class="stat-label">Business Clients</div></div>
 </div>
 
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-track">
+    <span class="trust-item">✅&nbsp;GlobalGAP Certified</span>
+    <span class="trust-item">🏅&nbsp;HACCP Compliant</span>
+    <span class="trust-item">🌿&nbsp;Organic Varieties Available</span>
+    <span class="trust-item">🌍&nbsp;Sourcing from 4 Countries</span>
+    <span class="trust-item">📦&nbsp;Cold-Chain Guaranteed</span>
+    <span class="trust-item">🏢&nbsp;1200+ Business Clients</span>
+    <span class="trust-item">🚚&nbsp;Pan-India Delivery</span>
+    <span class="trust-item">⏱️&nbsp;48h Freshness Promise</span>
+    <span class="trust-item">✅&nbsp;GlobalGAP Certified</span>
+    <span class="trust-item">🏅&nbsp;HACCP Compliant</span>
+    <span class="trust-item">🌿&nbsp;Organic Varieties Available</span>
+    <span class="trust-item">🌍&nbsp;Sourcing from 4 Countries</span>
+    <span class="trust-item">📦&nbsp;Cold-Chain Guaranteed</span>
+    <span class="trust-item">🏢&nbsp;1200+ Business Clients</span>
+    <span class="trust-item">🚚&nbsp;Pan-India Delivery</span>
+    <span class="trust-item">⏱️&nbsp;48h Freshness Promise</span>
+  </div>
+</div>
+
 <!-- LIVE PRICES -->
 <section id="prices">
   <div class="prices-header reveal">
@@ -507,6 +589,7 @@
         <div class="product-name">Hass Avocado</div>
         <div class="product-desc">The world's most popular variety. Rich, creamy texture with nutty flavor. Sourced from Mexico and Kenya.</div>
         <div class="product-tags"><span class="product-tag">Creamy</span><span class="product-tag">Year-round</span><span class="product-tag">Best Seller</span></div>
+        <div class="product-meta"><span class="meta-badge">📏 Size: 18s–24s</span><span class="meta-badge">🌡 Semi-ripe</span><span class="meta-badge">📅 Year-round</span><span class="meta-badge">🇲🇽 Mexico · 🇰🇪 Kenya</span></div>
         <div class="product-price-row"><span class="product-price-label">Starting at</span><span class="product-price-val" id="pp-hass">₹—/kg</span></div>
       </div>
     </div>
@@ -516,6 +599,7 @@
         <div class="product-name">Fuerte Avocado</div>
         <div class="product-desc">Smooth, mild flavor with thin green skin. Larger size, perfect for slicing. Popular in hotels and restaurants.</div>
         <div class="product-tags"><span class="product-tag">Mild Flavor</span><span class="product-tag">Large Size</span><span class="product-tag">HORECA</span></div>
+        <div class="product-meta"><span class="meta-badge">📏 Size: 12s–16s</span><span class="meta-badge">🌡 Semi-ripe</span><span class="meta-badge">📅 Mar–Sep</span><span class="meta-badge">🇿🇦 S.Africa · 🇰🇪 Kenya</span></div>
         <div class="product-price-row"><span class="product-price-label">Starting at</span><span class="product-price-val" id="pp-fuerte">₹—/kg</span></div>
       </div>
     </div>
@@ -525,6 +609,7 @@
         <div class="product-name">Lula Avocado</div>
         <div class="product-desc">Oval-shaped with high oil content. Excellent for guacamole, dips, and smoothies. Sourced from Israel.</div>
         <div class="product-tags"><span class="product-tag">High Oil</span><span class="product-tag">Israel</span><span class="product-tag">Smoothies</span></div>
+        <div class="product-meta"><span class="meta-badge">📏 Size: 10s–14s</span><span class="meta-badge">🌡 Tree-ripe</span><span class="meta-badge">📅 Jun–Oct</span><span class="meta-badge">🇮🇱 Israel</span></div>
         <div class="product-price-row"><span class="product-price-label">Starting at</span><span class="product-price-val" id="pp-lula">₹—/kg</span></div>
       </div>
     </div>
@@ -534,6 +619,7 @@
         <div class="product-name">Ettinger Avocado</div>
         <div class="product-desc">Light, delicate flavor with fewer calories. Bright green skin, elongated shape. Sourced from Peru.</div>
         <div class="product-tags"><span class="product-tag">Light</span><span class="product-tag">Affordable</span><span class="product-tag">Peru</span></div>
+        <div class="product-meta"><span class="meta-badge">📏 Size: 16s–22s</span><span class="meta-badge">🌡 Ready</span><span class="meta-badge">📅 Oct–Feb</span><span class="meta-badge">🇵🇪 Peru</span></div>
         <div class="product-price-row"><span class="product-price-label">Starting at</span><span class="product-price-val" id="pp-ettinger">₹—/kg</span></div>
       </div>
     </div>
@@ -653,6 +739,47 @@
         <textarea id="c-message" placeholder="Tell us about your requirements..."></textarea>
       </div>
       <button class="btn-submit" onclick="submitContact()">Send Message →</button>
+    </div>
+  </div>
+</section>
+
+<!-- TRACEABILITY -->
+<section>
+  <div class="trace-wrap">
+    <span class="section-tag reveal">🔍 Our Process</span>
+    <h2 class="section-title reveal">Farm to Your Door</h2>
+    <p class="section-sub reveal">Every avocado is traceable from certified origin farm to your delivery — cold-chain integrity at every step.</p>
+    <div class="trace-steps reveal">
+      <div class="trace-step"><div class="trace-icon">🌱</div><div class="trace-label">Farm</div><div class="trace-sub">Certified farms in Mexico, Kenya, Israel &amp; Peru</div></div>
+      <div class="trace-step"><div class="trace-icon">🏭</div><div class="trace-label">Packhouse</div><div class="trace-sub">Washed, graded &amp; sized by variety</div></div>
+      <div class="trace-step"><div class="trace-icon">✅</div><div class="trace-label">QC Check</div><div class="trace-sub">HACCP inspection &amp; ripeness verification</div></div>
+      <div class="trace-step"><div class="trace-icon">🚢</div><div class="trace-label">Export</div><div class="trace-sub">Cold-chain shipping to Indian ports</div></div>
+      <div class="trace-step"><div class="trace-icon">🚚</div><div class="trace-label">Delivery</div><div class="trace-sub">Last-mile to your warehouse within 48h</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="testi-wrap">
+    <span class="section-tag reveal">💬 What Buyers Say</span>
+    <h2 class="section-title reveal">Trusted by Importers &amp; Retailers</h2>
+    <div class="testi-grid reveal">
+      <div class="testi-card"><p class="t-text">AvoIndia has been our go-to supplier for over 2 years. Consistent quality, reliable cold chain, and real-time pricing keeps us ahead of the market.</p><div class="t-author"><div class="t-avatar">RK</div><div><div class="t-name">Ramesh Kumar</div><div class="t-role">Procurement Head, FreshMart Retail Chain</div><div class="t-stars">★★★★★</div></div></div></div>
+      <div class="testi-card"><p class="t-text">AvoIndia's Incoterms flexibility and documentation made onboarding seamless. Their off-season Fuerte supply is unmatched in the market.</p><div class="t-author"><div class="t-avatar">SP</div><div><div class="t-name">Suresh Patel</div><div class="t-role">Director, GreenLeaf Imports, Ahmedabad</div><div class="t-stars">★★★★★</div></div></div></div>
+      <div class="testi-card"><p class="t-text">Our restaurant chain switched to AvoIndia for HORECA supply 18 months ago — the 48-hour freshness promise is real and they deliver every time.</p><div class="t-author"><div class="t-avatar">AM</div><div><div class="t-name">Anika Mehta</div><div class="t-role">F&amp;B Manager, The Avocado Kitchen, Mumbai</div><div class="t-stars">★★★★★</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="nl-section">
+  <div class="nl-inner reveal">
+    <h3>📬 Get Seasonal Availability Updates</h3>
+    <p>Subscribe to receive harvest season alerts, price changes, and new variety announcements in your inbox.</p>
+    <div class="nl-form">
+      <input type="email" id="nl-email" placeholder="your@business.com" />
+      <button onclick="subscribeNewsletter()">Subscribe →</button>
     </div>
   </div>
 </section>
@@ -1162,6 +1289,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<!-- FLOATING BUTTONS -->
+<div class="fab-cluster">
+  <a class="fab-wa" href="https://wa.me/919876543210" target="_blank" title="Chat on WhatsApp">💬</a>
+  <button class="fab-quote" onclick="document.getElementById('visitorModal').classList.remove('hidden')">📋 Get a Quote</button>
+</div>
+
 </body>
 </html>
 led')) {
@@ -1246,6 +1379,14 @@ led')) {
       document.getElementById('visitorModal').classList.add('hidden');
     }
   });
+
+function subscribeNewsletter(){
+  const em=document.getElementById('nl-email').value.trim();
+  if(!em||!em.includes('@')){showToast('Enter a valid email 📧');return;}
+  fetch(API+'/visitors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Newsletter',email:em,phone:'',city:'',interest:'Newsletter Signup'})}).catch(()=>{});
+  showToast('Subscribed! Price updates coming 📬');
+  document.getElementById('nl-email').value='';
+}
 </script>
 </body>
 </html>
