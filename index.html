@@ -1314,7 +1314,13 @@ function initReveal() {
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal, .reveal-left, .reveal-scale').forEach(el => {
-    if (!el.classList.contains('revea  // COUNT-UP ANIMATION FOR STATS
+    if (!el.classList.contains('revealed')) {
+      observer.observe(el);
+    }
+  });
+}
+
+  // COUNT-UP ANIMATION FOR STATS
   function countUp(el, target, suffix) {
     const duration = 1600;
     const start = Date.now();
