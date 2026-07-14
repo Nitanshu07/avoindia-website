@@ -297,6 +297,27 @@
     .btn-submit:hover::after{left:160%;}
     .btn-submit:active{transform:translateY(0);}
 
+    /* ── QUOTE FORM ENHANCED ── */
+    .contact-form{position:relative!important;overflow:hidden!important;}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+    @keyframes checkDraw{to{stroke-dashoffset:0}}
+    @keyframes formPop{0%{opacity:0;transform:scale(0.88)}60%{transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+    @keyframes spinBtn{to{transform:rotate(360deg)}}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{transform:translateY(-1px);}
+    .form-group.has-error input,.form-group.has-error select,.form-group.has-error textarea{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.14)!important;animation:shake 0.35s ease;}
+    .field-error-msg{font-size:0.75rem;color:#ef4444;margin-top:3px;display:none;}
+    .form-group.has-error .field-error-msg{display:block;}
+    .form-group.has-ok input,.form-group.has-ok select,.form-group.has-ok textarea{border-color:#10b981!important;box-shadow:0 0 0 3px rgba(16,185,129,0.12)!important;}
+    .btn-submit.is-loading{pointer-events:none;opacity:0.8;}
+    .btn-submit.is-loading .btn-text{display:none;}
+    .btn-submit.is-loading::before{content:'';display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spinBtn 0.7s linear infinite;vertical-align:middle;}
+    .form-success-overlay{position:absolute;inset:0;background:var(--white);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;z-index:10;transition:opacity 0.4s;}
+    .form-success-overlay.show{opacity:1;pointer-events:auto;animation:formPop 0.5s ease both;}
+    .form-success-overlay svg{width:72px;height:72px;}
+    .form-success-overlay h3{font-size:1.25rem;font-weight:800;color:var(--text);}
+    .form-success-overlay p{font-size:0.87rem;color:var(--muted);text-align:center;max-width:230px;line-height:1.6;}
+    .form-reset-btn{margin-top:4px;background:none;border:1.5px solid var(--green);color:var(--green);padding:9px 26px;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+    .form-reset-btn:hover{background:var(--green);color:white;}
     /* ── FOOTER ── */
     footer{background:linear-gradient(135deg,#0f1f2e,#111827);color:rgba(255,255,255,0.7);padding:50px 6% 24px;}
     .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
@@ -938,7 +959,8 @@
         <label>Message</label>
         <textarea id="c-message" placeholder="Tell us about your requirements..."></textarea>
       </div>
-      <button class="btn-submit" onclick="submitContact()">Send Message →</button>
+      <div id="formSuccessOverlay" class="form-success-overlay"><svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="26" r="24" stroke="#10b981" stroke-width="3"/><path d="M14 26l9 9 15-18" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:60;stroke-dashoffset:0;animation:checkDraw 0.6s 0.4s ease both;"/></svg><h3>Message Sent! 🎉</h3><p>Our team will reach out within 24 hours.</p><button class="form-reset-btn" onclick="resetContactForm()">Send Another →</button></div>
+      <button class="btn-submit" onclick="submitContact()"><span class="btn-text">Send Message →</span></button>
     </div>
   </div>
 </section>
@@ -1356,21 +1378,49 @@ function escHtml(str) {
 
 // ── CONTACT FORM ──
 async function submitContact() {
-  const name = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
-  const city = document.getElementById('c-city').value.trim();
-  const interest = document.getElementById('c-interest').value;
-  const message = document.getElementById('c-message').value.trim();
-  if (!name || !email) { showToast('Name and email are required', 'error'); return; }
+  document.querySelectorAll('.contact-form .form-group').forEach(g => g.classList.remove('has-error','has-ok'));
+  const fields = {
+    name: document.getElementById('c-name'),
+    email: document.getElementById('c-email'),
+    phone: document.getElementById('c-phone'),
+    interest: document.getElementById('c-interest'),
+    message: document.getElementById('c-msg')
+  };
+  let valid = true;
+  function check(el, ok, msg) {
+    if (!el) return;
+    const grp = el.closest('.form-group');
+    let err = grp.querySelector('.field-error-msg');
+    if (!err) { err = document.createElement('span'); err.className = 'field-error-msg'; grp.appendChild(err); }
+    if (!ok) { grp.classList.add('has-error'); err.textContent = msg; valid = false; }
+    else { grp.classList.add('has-ok'); }
+  }
+  check(fields.name, fields.name && fields.name.value.trim().length >= 2, 'Please enter your full name');
+  check(fields.email, fields.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.value.trim()), 'Please enter a valid email');
+  check(fields.phone, fields.phone && fields.phone.value.trim().length >= 6, 'Please enter a valid phone number');
+  if (!valid) {
+    document.querySelector('.contact-form .has-error input,.contact-form .has-error select')?.focus();
+    return;
+  }
+  const btn = document.querySelector('.btn-submit');
+  btn.classList.add('is-loading');
   try {
-    const r = await fetch(API + '/visitors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, phone, city, interest, message, source:'contact_form' }) });
-    const d = await r.json();
-    if (r.ok || d.duplicate) {
-      showToast('Message sent! We\'ll get back to you within 4 hours. 🥑');
-      ['c-name','c-email','c-phone','c-city','c-message'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-    } else { showToast(d.error || 'Failed to send', 'error'); }
-  } catch { showToast('Network error. Please try again.', 'error'); }
+    await fetch(API_BASE + '/api/visitors', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: fields.name?.value.trim(), email: fields.email?.value.trim(),
+        phone: fields.phone?.value.trim(), interest: fields.interest?.value,
+        message: fields.message?.value.trim(), source: 'contact_form'
+      })
+    });
+  } catch(_) {}
+  btn.classList.remove('is-loading');
+  document.getElementById('formSuccessOverlay')?.classList.add('show');
+}
+function resetContactForm() {
+  document.getElementById('formSuccessOverlay')?.classList.remove('show');
+  document.querySelectorAll('.contact-form .form-group').forEach(g => g.classList.remove('has-ok','has-error'));
+  document.querySelectorAll('.contact-form input,.contact-form select,.contact-form textarea').forEach(el => { el.value = ''; });
 }
 
 // ── 3D: NAV GLASSMORPHISM ──
