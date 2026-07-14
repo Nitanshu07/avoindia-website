@@ -384,13 +384,27 @@
     .hero-btns{animation:heroLineIn 0.7s 0.4s ease both;}
 
     /* ── RESPONSIVE ── */
+    /* ── MOBILE NAV ── */
+    .hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:7px;border-radius:8px;transition:background 0.2s;margin-left:6px;}
+    .hamburger:hover{background:var(--green-pale);}
+    .hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:transform 0.3s ease,opacity 0.25s ease,width 0.25s ease;}
+    .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+    .hamburger.open span:nth-child(2){opacity:0;width:0;}
+    .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+    .mobile-nav{position:fixed;top:64px;left:0;right:0;background:var(--white);border-bottom:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.1);z-index:99;transform:translateY(-12px);opacity:0;pointer-events:none;transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),opacity 0.22s ease;display:block;}
+    .mobile-nav.open{transform:translateY(0);opacity:1;pointer-events:auto;}
+    .mobile-nav-links{list-style:none;padding:14px 5%;display:flex;flex-direction:column;gap:2px;}
+    .mobile-nav-links a{display:block;padding:12px 16px;border-radius:10px;text-decoration:none;font-size:0.95rem;font-weight:600;color:var(--text);transition:background 0.18s,color 0.18s;}
+    .mobile-nav-links a:hover,.mobile-nav-links a:active{background:var(--green-pale);color:var(--green);}
+    .mobile-nav-cta{display:block;margin:6px 5% 16px;background:linear-gradient(135deg,var(--green),var(--green-mid));color:white;text-align:center;padding:13px;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.95rem;transition:opacity 0.2s;}
+    .mobile-nav-cta:hover{opacity:0.9;}
     @media(max-width:900px){
       .hero{flex-direction:column;text-align:center;}
       .hero-visual{display:none;}
       .blog-layout{grid-template-columns:1fr;}
       .about-grid,.contact-grid{grid-template-columns:1fr;}
       .footer-grid{grid-template-columns:1fr 1fr;}
-      .nav-links{display:none;}
+      .nav-links{display:none;}.hamburger{display:flex;}
       .stats-bar{flex-wrap:wrap;}
     }
     @media(max-width:600px){
@@ -723,7 +737,19 @@
     <a href="#contact" class="nav-cta">Get a Quote</a>
   </div>
 <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" onclick="toggleTheme()">🌙</button>
+  <button class="hamburger" id="hamburger" aria-label="Open menu" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
   </nav>
+<div class="mobile-nav" id="mobileNav">
+  <ul class="mobile-nav-links">
+    <li><a href="#home" onclick="closeMobileNav()">Home</a></li>
+    <li><a href="#prices" onclick="closeMobileNav()">Live Prices</a></li>
+    <li><a href="#products" onclick="closeMobileNav()">Products</a></li>
+    <li><a href="#blog" onclick="closeMobileNav()">Insights</a></li>
+    <li><a href="#about" onclick="closeMobileNav()">About</a></li>
+    <li><a href="#contact" onclick="closeMobileNav()">Contact</a></li>
+  </ul>
+  <a href="#contact" class="mobile-nav-cta" onclick="closeMobileNav()">Get a Quote →</a>
+</div>
 
 <!-- HERO -->
 <section class="hero" id="home">
@@ -1609,7 +1635,28 @@ function toggleTheme() {
   applyTheme(saved);
 })();
 
-</script>
+
+
+  // ── MOBILE NAV ──
+  function toggleMobileNav() {
+    const menu = document.getElementById('mobileNav');
+    const btn = document.getElementById('hamburger');
+    const isOpen = menu.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    btn.setAttribute('aria-expanded', isOpen);
+  }
+  function closeMobileNav() {
+    document.getElementById('mobileNav')?.classList.remove('open');
+    document.getElementById('hamburger')?.classList.remove('open');
+  }
+  // Close mobile nav on outside click
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('mobileNav');
+    const btn = document.getElementById('hamburger');
+    if (menu?.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+      closeMobileNav();
+    }
+  });</script>
 
 <!-- FLOATING BUTTONS -->
 <div class="fab-cluster">
