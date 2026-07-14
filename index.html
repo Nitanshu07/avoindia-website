@@ -1220,9 +1220,9 @@ async function showPriceSkeleton() {
   if (locked) locked.innerHTML = html;
 }
 
-  function loadPrices() {
-showPriceSkeleton();
-    try {
+async function loadPrices() {
+  showPriceSkeleton();
+  try {
     const r = await fetch(API + '/prices');
     const prices = await r.json();
     if (!Array.isArray(prices)) return;
