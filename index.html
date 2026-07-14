@@ -169,6 +169,11 @@
     .price-bar-fill{height:100%;background:linear-gradient(90deg,var(--green-light),var(--green));border-radius:2px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
     .price-updated{font-size:0.78rem;color:var(--muted);text-align:right;margin-top:8px;}
     .price-loading{text-align:center;padding:40px;color:var(--muted);font-size:0.9rem;}
+    @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+    .skeleton-card{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--border);}
+    .skel-line{border-radius:6px;background:linear-gradient(90deg,var(--border) 25%,rgba(255,255,255,0.6) 50%,var(--border) 75%);background-size:600px 100%;animation:shimmer 1.5s ease-in-out infinite;}
+    [data-theme="dark"] .skel-line{background:linear-gradient(90deg,rgba(40,60,40,0.8) 25%,rgba(60,90,60,0.5) 50%,rgba(40,60,40,0.8) 75%);background-size:600px 100%;}
+    [data-theme="dark"] .skeleton-card{background:rgba(20,40,20,0.85)!important;border-color:rgba(107,167,77,0.15)!important;}
 
     /* ── PRODUCTS ── */
     #products{background:var(--white);}
@@ -611,6 +616,10 @@
   [data-theme="dark"] .ledger { background:rgba(10,22,10,0.9) !important; }
   [data-theme="dark"] .ledger-title { color:#e8f5e0 !important; }
   [data-theme="dark"] .ledger-desc { color:rgba(180,220,170,0.75) !important; }
+  [data-theme="dark"] .mobile-nav{background:rgba(10,22,10,0.97)!important;border-bottom-color:rgba(107,167,77,0.18)!important;}
+  [data-theme="dark"] .mobile-nav-links a{color:#d4edcc!important;}
+  [data-theme="dark"] .mobile-nav-links a:hover{background:rgba(107,167,77,0.15)!important;color:#b7e4c7!important;}
+  [data-theme="dark"] .hamburger span{background:#d4edcc!important;}
   /* Theme toggle button */
   .theme-toggle { background:none; border:1.5px solid rgba(107,167,77,0.4); color:inherit; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
   .theme-toggle:hover { border-color:#6ba74d; background:rgba(107,167,77,0.12); }
@@ -1202,8 +1211,18 @@ function applyGates() {
 }
 
 // ── LOAD PRICES ──
-async function loadPrices() {
-  try {
+async function showPriceSkeleton() {
+  const card = () => `<div class="price-card skeleton-card"><div class="skel-line" style="height:10px;width:60%;margin-bottom:14px"></div><div class="skel-line" style="height:36px;width:55%;margin:10px 0"></div><div class="skel-line" style="height:9px;width:40%;margin-top:8px"></div><div class="skel-line" style="height:4px;border-radius:2px;margin-top:16px"></div></div>`;
+  const html = [0,0,0].map(card).join('');
+  const free = document.getElementById('priceGridFree');
+  const locked = document.getElementById('priceGridLocked');
+  if (free) free.innerHTML = html;
+  if (locked) locked.innerHTML = html;
+}
+
+  function loadPrices() {
+showPriceSkeleton();
+    try {
     const r = await fetch(API + '/prices');
     const prices = await r.json();
     if (!Array.isArray(prices)) return;
