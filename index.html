@@ -30,6 +30,12 @@
     .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:2px;background:var(--green);border-radius:1px;transform:scaleX(0);transition:transform 0.2s;}
     .nav-links a:hover{color:var(--green);}
     .nav-links a:hover::after{transform:scaleX(1);}
+    .nav-links a.active{color:var(--green);}
+    .nav-links a.active::after{transform:scaleX(1);}
+    @keyframes btnBounceIn{0%{opacity:0;transform:translateY(16px) scale(0.8)}60%{transform:translateY(-3px) scale(1.06)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    .scroll-top-btn{position:fixed;bottom:96px;right:22px;width:44px;height:44px;background:linear-gradient(135deg,var(--green),var(--green-mid));color:white;border:none;border-radius:50%;font-size:1.3rem;cursor:pointer;z-index:88;box-shadow:0 4px 20px rgba(45,106,79,0.35);opacity:0;pointer-events:none;transform:translateY(16px) scale(0.8);transition:opacity 0.3s ease,transform 0.3s ease;}
+    .scroll-top-btn.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);animation:btnBounceIn 0.4s ease both;}
+    .scroll-top-btn:hover{transform:translateY(-3px) scale(1.08);box-shadow:0 8px 28px rgba(45,106,79,0.45);}
     .nav-right{display:flex;align-items:center;gap:10px;}
     .nav-cta{background:var(--green);color:var(--white);padding:8px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;text-decoration:none;transition:background 0.2s,transform 0.15s,box-shadow 0.15s;position:relative;overflow:hidden;}
     .nav-cta:hover{background:var(--green-mid);transform:translateY(-1px);box-shadow:0 4px 14px rgba(45,106,79,0.35);}
@@ -1574,6 +1580,8 @@ function initReveal() {
     applyGates();
     createParticles();
     initReveal();
+    initActiveNav();
+    initScrollTop();
     initCountUp();
     initHeroParallax();
     // Card tilt init after a short delay (price cards may not be rendered yet)
@@ -1656,7 +1664,35 @@ function toggleTheme() {
     if (menu?.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
       closeMobileNav();
     }
-  });</script>
+  });
+
+  // ── ACTIVE NAV ──
+  function initActiveNav() {
+    const sections = Array.from(document.querySelectorAll('section[id]'));
+    const navLinks = document.querySelectorAll('.nav-links a');
+    if (!sections.length || !navLinks.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s => obs.observe(s));
+  }
+
+  // ── SCROLL TO TOP ──
+  function initScrollTop() {
+    const btn = document.getElementById('scrollTopBtn');
+    if (!btn) return;
+    window.addEventListener('scroll', () => {
+      btn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+  }
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }</script>
 
 <!-- FLOATING BUTTONS -->
 <div class="fab-cluster">
@@ -1664,5 +1700,6 @@ function toggleTheme() {
   <button class="fab-quote" onclick="document.getElementById('visitorModal').classList.remove('hidden')">📋 Get a Quote</button>
 </div>
 
-</body>
+
+<button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Back to top" aria-label="Back to top">↑</button></body>
 </html>
